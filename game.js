@@ -84,6 +84,26 @@ class MovingWall {
   }
 }
 
+class Chest {
+  constructor (item, x, y, rarity){
+    this.item = item;
+    this.rarity = rarity;
+    this.x = x;
+    this.y = y;
+    this.w = 25;
+    this.h = 25;
+  }
+  draw (){
+    if(this.rarity === "common"){
+      fill(255,50,50);
+    } else if(this.rarity === "rare"){
+      fill(50,255,50);
+    } else if (this.rarity === "epic"){
+      fill(50,50,255);
+    }
+    rect (this.x - player.x + 250, this.y - player.y + 250, this.w, this.h);
+  }
+}
 
 class Player {
   constructor(x, y) {
