@@ -121,12 +121,15 @@ class Player {
     this.sliding = false;
     this.post_slide = false;
     this.spd = 4;
+    this.hearts = 5;
+    this.max_hearts = 5;
     this.gravity = 0;
     this.jumpHeight = 17;
     this.jumpSpeed = 5;
     this.boostMax = 13;
     this.boostSpeed = 0;
-    this.knocked = true;
+    this.hit = false;
+    this.knocked = false;
     this.knockedSpeed = 0;
     this.knocked_x = 0;
     this.knocked_y = 0;
@@ -150,14 +153,28 @@ class Player {
       let img = loadImage("assets/Animations/" + string);
       this.slide_animation.push(img);
     }
+    this.hurt_image = loadImage("assets/Animations/penguin_hurt.png");
     this.main_image = loadImage("assets/Animations/penguin_walk01.png");
     this.currentImage = this.main_image;
     this.frame_delay = 5;
     this.animation_counter = 0;
   }
-
+  playerHearts(){
+    let x_pos = 400;
+    for(let i = 0; i < this.hearts; i++){
+      drawHeart(x_pos,450,2,color(255,0,0));
+      x_pos += 20;
+    }
+    for(let j = 0; j < (this.max_hearts - this.hearts); j++){
+      drawHeart(x_pos,450,2,color(0,0,0));
+      x_pos += 20;
+    }
+  }
   drawPlayer() {
-    if (this.pre_slide) {
+    if(this.hit){
+      this.currentImage = this.hurt_image;
+    }
+    else if (this.pre_slide) {
       this.currentImage = this.slide_animation[0];
       if (this.animation_counter > this.frame_delay - 2) {
         this.pre_slide = false;
@@ -239,39 +256,43 @@ class Player {
         break;
       }
     }
-    if (this.knockedSpeed > 0) {
-      this.knocked = true;
-      this.knockedSpeed--;
-    } else {
+    if(this.knockedSpeed === 1){
+      this.knockedSpeed = 0;
+      this.hit = false;
       this.knocked = false;
     }
+    else if (this.knockedSpeed > 0) {
+      this.knocked = true;
+      this.knockedSpeed--;
+    } 
   }
   movePlayer() {
-
-    if (this.up && !(placeFree(this.x, this.y + 1, this.w, this.h, walls1))) {//jumping when you're on the ground
-      this.jumpSpeed = this.jumpHeight;
-      this.gravity = 0;
-    } else if (this.up && !(placeFree(this.x, this.y + 1, this.w, this.h, movingWalls))) {
-      this.jumpSpeed = this.jumpHeight;
-      this.gravity = 0;
-    }
-    if ((this.right || this.left) && this.pre_slide) {
-      this.boostSpeed = this.boostMax;
-    }
-    var dir = this.right - this.left;
-    text("dir:", 150, 50);
-    text(dir, 180, 50);
-
-    for (var s = this.spd; s >= 0; s--) {
-      if (placeFree(this.x + s * dir, this.y, this.w, this.h, walls1)
-        && placeFreeMovingWall(this.x + s * dir, this.y, this.w, this.h, movingWalls)) {
-        this.x += s * dir;
-        break;
+    if (!this.hit){
+      if (this.up && !(placeFree(this.x, this.y + 1, this.w, this.h, walls1))) {//jumping when you're on the ground
+        this.jumpSpeed = this.jumpHeight;
+        this.gravity = 0;
+      } else if (this.up && !(placeFree(this.x, this.y + 1, this.w, this.h, movingWalls))) {
+        this.jumpSpeed = this.jumpHeight;
+        this.gravity = 0;
       }
-    }
-    console.log(this.boostSpeed);
-    if (this.boostSpeed > 0 || this.sliding) {
-      this.playerBoost();
+      if ((this.right || this.left) && this.pre_slide) {
+        this.boostSpeed = this.boostMax;
+      }
+    
+      var dir = this.right - this.left;
+      text("dir:", 150, 50);
+      text(dir, 180, 50);
+
+      for (var s = this.spd; s >= 0; s--) {
+        if (placeFree(this.x + s * dir, this.y, this.w, this.h, walls1)
+          && placeFreeMovingWall(this.x + s * dir, this.y, this.w, this.h, movingWalls)) {
+          this.x += s * dir;
+          break;
+        }
+      }
+      if (this.boostSpeed > 0 || this.sliding) {
+        this.playerBoost();
+      }
     }
     if (this.jumpSpeed > 0) {
       this.playerJump();
@@ -296,6 +317,8 @@ class Player {
       }
       if (collision(this, tempWall) || collision(this, z[i])) {
         this.getKnockBack(z[i].spd * 5, z[i].x_dir, z[i].y_dir);
+        this.hit = true;
+        this.hearts -= 1;
       } else
         if (collision(tempBelow, tempWall)) {
           if (placeFree(this.x + z[i].spd * z[i].x_dir, this.y + z[i].spd * z[i].y_dir, this.w, this.h, walls1)
@@ -363,6 +386,27 @@ class Player {
   };
 }
 
+function drawHeart (x,y,size, clr){
+  fill(clr);
+  rect(x,y,size,size);
+    rect(x+size,y,size,size);
+    rect(x-size*3,y,size,size);
+    rect(x-size*2,y,size,size);
+    for(var i = 0; i < 7;i++){
+        rect(x-size*4+i*size,y+size,size,size);
+    }
+    for(var i = 0; i < 7;i++){
+        rect(x-size*4+i*size,y+size*2,size,size);
+    }
+    for(var i = 0; i < 5;i++){
+        rect(x-size*3+i*size,y+size*3,size,size);
+    }
+    for(var i = 0; i < 3;i++){
+        rect(x-size*2+i*size,y+size*4,size,size);
+    }
+    rect(x-size,y+size*5,size,size);
+}
+
 class Zombie {
   constructor(x, y, num) {
     this.x = x;
@@ -389,6 +433,7 @@ class Zombie {
     this.zombieAttackSpd = 5;
     this.zombieAttackSwitch = false;
     this.damage = 1;
+    this.knockBack = 10;
     this.health = 100;
     this.counter = 30;
     this.hit = false;
@@ -549,12 +594,16 @@ class Zombie {
     fill(200, 100, 100, 100);
     if (collision(player, temp)) {
       if (this.zombieAttack === 0) {
-        player.health -= this.damage;
+        player.hearts -= this.damage;
+        player.hit = true;
         this.zombieAttackB = true;
         this.zombieAttackSwitch = false;
         this.zombieAttackSpd = 2;
-        player.dir = this.dir * -1;
-        hit = true;
+        if(this.dir !== 0){
+          player.getKnockBack(this.knockBack,this.dir, 0);
+        }else {
+          player.getKnockBack(this.knockBack, 0, 1);
+        }
       }
     }
   }
@@ -655,7 +704,6 @@ function resetLevel() {
 function drawLevel() {
   fill(94, 92, 237);
   for (var i = 0; i < walls1.length; i++) {
-    console.log(walls1[i].x1);
     if (walls1[i].x1 !== undefined) {
       walls1[i].move();
     }
@@ -673,7 +721,7 @@ function drawLevel() {
   }
 }
 function setup() {
-  createCanvas(500, 500);
+  createCanvas(500, 500,document.getElementById(""));
   fill(SNOW_COLOR);
   noStroke();
   zombies.push(new Zombie(400, 200, 1))
@@ -700,6 +748,7 @@ function draw() {
   }
   player.movePlayer();
   player.drawPlayer();
+  player.playerHearts();
   doZombies();
 }
 
@@ -899,3 +948,4 @@ function updateSnowflake(snowflake) {
   else if (snowflake.x < -diameter) snowflake.x = width + diameter;
   else snowflake.x += wind * WIND_SPEED * snowflake.l;
 }
+

@@ -1,0 +1,39 @@
+html, body {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: start;
+    height: 100%;
+    width: 100%;
+    background-color: black;
+}
+
+#header {
+    align-self: stretch;
+    background-color: black;
+    text-align: center;
+    height: 10%;
+    color: white;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+
+}
+
+canvas {
+    align-self: center;
+    border-radius: 10px;
+}
